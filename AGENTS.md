@@ -29,13 +29,35 @@ Run lint and typecheck before declaring any task done.
 - Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
 - Docs: https://docs.expo.dev/router/introduction.md
 
-## Building with EAS
+## Build and test with Limrun
 
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
+Build and run this app with the `lim` CLI, not EAS, local Xcode, Android Studio, or a local simulator. `lim` builds on remote Xcode and Gradle sandboxes and runs the app on cloud iOS simulators and Android emulators.
+
+```bash
+npm install --global lim
+lim skills install
+```
+
+`lim` reads `LIM_API_KEY` from the environment or a `.env` file. The `limrun-expo-development` skill has the full workflow; the commands below are the short path.
+
+iOS: the Release build includes the JavaScript bundle and runs without Metro. `--attach` installs and launches the latest build on the new simulator.
+
+```bash
+lim xcode build . --configuration Release
+lim ios create --attach
+```
+
+Android: the default Debug build is a development client that connects to Metro. After these commands, follow "Build with Limrun", "Android" in `README.md` to tunnel Metro to the emulator.
+
+```bash
+lim gradle build . --upload sample-expo58-app/android-debug.apk
+lim android create --install-asset sample-expo58-app/android-debug.apk --no-connect
+```
+
+Delete each instance when you finish, with `lim ios delete <id>` or `lim android delete <id>`.
 
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
+- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: build it with Limrun (see "Build and test with Limrun") with `--configuration Debug` on iOS or the default Debug build on Android.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
